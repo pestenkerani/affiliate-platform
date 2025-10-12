@@ -1,76 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { CacheService, generateCacheKey } from '@/lib/cache-service';
 import { QueryOptimizer, ApiResponse, RequestValidator, CacheInvalidator, PerformanceMonitor } from '@/lib/api-optimization';
-
-const prisma = new PrismaClient();
 
 // GET /api/influencers - Tüm influencer'ları listele
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const stopTimer = PerformanceMonitor.startTimer('influencers:get');
   
   try {
-    const { searchParams } = new URL(request.url);
-    
-    // Request validation
-    const { page, limit } = RequestValidator.validatePagination(searchParams);
-    const { search, status, sortBy, sortOrder } = RequestValidator.validateSearch(searchParams);
-    
-    // Cache key oluştur
-    const cacheKey = generateCacheKey('influencers:list', {
-      page, limit, search, status, sortBy, sortOrder
-    });
-    
-    // Cache'den kontrol et
-    const cached = CacheService.get<NextResponse>(cacheKey);
-    if (cached) {
-      stopTimer();
-      return cached;
-    }
-    
-    // Query optimization
-    const baseQuery = QueryOptimizer.optimizeFilterQuery({ status });
-    const searchQuery = QueryOptimizer.optimizeSearchQuery(search || '', ['name', 'email']);
-    const query = { ...baseQuery, ...searchQuery };
-    
-    const orderBy: any = {};
-    orderBy[sortBy] = sortOrder;
-    
-    const optimizedQuery = QueryOptimizer.optimizePaginationQuery(
-      { where: query, orderBy },
-      page,
-      limit
-    );
-
-    const [influencers, total] = await Promise.all([
-      prisma.influencer.findMany({
-        ...optimizedQuery,
-        include: {
-          _count: {
-            select: {
-              links: true,
-              clicks: true,
-              commissions: true
-            }
-          }
+    // Demo mode - return mock data
+    const demoInfluencers = [
+      {
+        id: 'demo-1',
+        name: 'Demo Influencer',
+        email: 'demo@influencer.com',
+        phone: '+90 555 123 4567',
+        instagram: '@demo_influencer',
+        commissionRate: 10,
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        _count: {
+          links: 5,
+          clicks: 150,
+          commissions: 8
         }
-      }),
-      prisma.influencer.count({ where: query })
-    ]);
+      },
+      {
+        id: 'demo-2',
+        name: 'Test Influencer',
+        email: 'test@influencer.com',
+        phone: '+90 555 987 6543',
+        instagram: '@test_influencer',
+        commissionRate: 8,
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        _count: {
+          links: 3,
+          clicks: 89,
+          commissions: 4
+        }
+      }
+    ];
 
     const response = NextResponse.json({
       success: true,
-      data: influencers,
+      data: demoInfluencers,
       pagination: {
-        current: page,
-        pages: Math.ceil(total / limit),
-        total,
-        limit
+        current: 1,
+        pages: 1,
+        total: demoInfluencers.length,
+        limit: 20
       }
     });
-    
-    // Cache'e kaydet (5 dakika)
-    CacheService.set(cacheKey, response, 300);
     
     stopTimer();
     return response;
@@ -105,42 +85,30 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       accountHolder
     } = body;
 
-    // Email benzersizliği kontrol et
-    const existingInfluencer = await prisma.influencer.findUnique({
-      where: { email }
-    });
-    
-    if (existingInfluencer) {
-      stopTimer();
-      return NextResponse.json(
-        { error: 'Email already exists' },
-        { status: 400 }
-      );
-    }
-
-    const influencer = await prisma.influencer.create({
-      data: {
-        name,
-        email,
-        phone,
-        instagram,
-        tiktok,
-        youtube,
-        twitter,
-        commissionRate,
-        bankName,
-        accountNumber,
-        iban,
-        accountHolder
-      }
-    });
-
-    // Cache'i temizle
-    CacheInvalidator.invalidateInfluencerCache();
+    // Demo mode - return mock created influencer
+    const mockInfluencer = {
+      id: `demo-${Date.now()}`,
+      name,
+      email,
+      phone,
+      instagram,
+      tiktok,
+      youtube,
+      twitter,
+      commissionRate,
+      bankName,
+      accountNumber,
+      iban,
+      accountHolder,
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
 
     const response = NextResponse.json({
       success: true,
-      data: influencer
+      data: mockInfluencer,
+      message: 'Demo mode: Influencer created successfully'
     });
     stopTimer();
     return response;
