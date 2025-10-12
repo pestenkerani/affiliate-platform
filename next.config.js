@@ -21,7 +21,6 @@ const withPWA = require('next-pwa')({
 const nextConfig = {
   allowedDevOrigins: ['*.trycloudflare.com'],
   env: {
-    NODE_ENV: 'production',
     DEMO_MODE: 'true',
   },
   // Webpack configuration
