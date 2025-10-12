@@ -51,32 +51,39 @@ interface Link {
   originalUrl: string;
   campaignName?: string;
   influencer: Influencer;
-  clickCount: number;
-  conversionCount: number;
-  status: string;
+  clickCount?: number;
+  conversionCount?: number;
+  status?: string;
   createdAt: string;
+  _count?: {
+    clicks: number;
+    commissions: number;
+  };
 }
 
 interface Commission {
   id: string;
-  orderId: string;
-  orderValue: number;
-  commissionRate: number;
-  commissionAmount: number;
+  orderId?: string;
+  orderValue?: number;
+  commissionRate?: number;
+  commissionAmount?: number;
+  amount?: number;
   status: string;
   paymentDate?: string;
   customerEmail?: string;
   customerName?: string;
   createdAt: string;
-  influencer: {
+  influencerId?: string;
+  linkId?: string;
+  influencer?: {
     id: string;
     name: string;
     email: string;
   };
-  link: {
+  link?: {
     id: string;
     shortCode: string;
-    campaignName?: string;
+    campaignName: string;
   };
 }
 
@@ -221,8 +228,8 @@ export default function AffiliateDashboard() {
       const commissionsData = commissionsRes.data.data || [];
 
       // Stats hesaplamalarını optimize et
-      const totalClicks = linksData.reduce((sum: number, link: Link) => sum + link.clickCount, 0);
-      const totalCommissions = commissionsData.reduce((sum: number, comm: Commission) => sum + comm.commissionAmount, 0);
+      const totalClicks = linksData.reduce((sum: number, link: any) => sum + (link._count?.clicks || 0), 0);
+      const totalCommissions = commissionsData.reduce((sum: number, comm: any) => sum + (comm.amount || 0), 0);
 
       // Tek seferde state güncellemesi
       setInfluencers(influencersData);
@@ -331,7 +338,7 @@ export default function AffiliateDashboard() {
           type: 'commission',
           influencerEmail: commission.influencer.email,
           data: {
-            commissionAmount: commission.commissionAmount,
+            commissionAmount: commission.amount || commission.commissionAmount || 0,
             orderId: commission.orderId
           }
         }).catch(emailError => {
@@ -364,7 +371,7 @@ export default function AffiliateDashboard() {
           type: 'payment',
           influencerEmail: commission.influencer.email,
           data: {
-            paymentAmount: commission.commissionAmount,
+            paymentAmount: commission.amount || commission.commissionAmount || 0,
             paymentDate: new Date().toLocaleDateString('tr-TR')
           }
         });
@@ -953,7 +960,7 @@ export default function AffiliateDashboard() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-600">Tıklama:</span>
-                        <span className="text-sm font-medium">{link.clickCount}</span>
+                        <span className="text-sm font-medium">{link._count?.clicks || link.clickCount || 0}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-600">Dönüşüm:</span>
@@ -1050,7 +1057,7 @@ export default function AffiliateDashboard() {
                   <div className="text-center">
                     <p className="text-sm text-gray-600">Toplam Tutar</p>
                     <p className="text-2xl font-bold text-purple-600">
-                      ₺{commissions.reduce((sum, c) => sum + c.commissionAmount, 0)}
+                      ₺{commissions.reduce((sum, c) => sum + (c.amount || c.commissionAmount || 0), 0)}
                     </p>
                   </div>
                 </CardContent>
@@ -1143,7 +1150,7 @@ export default function AffiliateDashboard() {
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">Komisyon Tutarı</p>
-                        <p className="font-medium text-green-600">₺{commission.commissionAmount}</p>
+                        <p className="font-medium text-green-600">₺{commission.amount || commission.commissionAmount || 0}</p>
                       </div>
                     </div>
                     
