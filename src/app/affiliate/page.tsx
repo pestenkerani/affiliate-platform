@@ -333,7 +333,7 @@ export default function AffiliateDashboard() {
       
       // Email bildirimi gönder (arka planda)
       const commission = commissions.find(c => c.id === id);
-      if (commission) {
+      if (commission && commission.influencer) {
         axios.post(`${API_BASE_URL}/email/send`, {
           type: 'commission',
           influencerEmail: commission.influencer.email,
@@ -366,7 +366,7 @@ export default function AffiliateDashboard() {
       
       // Email bildirimi gönder
       const commission = commissions.find(c => c.id === id);
-      if (commission) {
+      if (commission && commission.influencer) {
         await axios.post(`${API_BASE_URL}/email/send`, {
           type: 'payment',
           influencerEmail: commission.influencer.email,
@@ -1138,7 +1138,7 @@ export default function AffiliateDashboard() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div>
                         <p className="text-sm text-gray-600">Influencer</p>
-                        <p className="font-medium">{commission.influencer.name}</p>
+                        <p className="font-medium">{commission.influencer?.name || 'Unknown'}</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">Sipariş Tutarı</p>
