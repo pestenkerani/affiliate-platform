@@ -1,0 +1,171 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model AuthToken {
+  id              String   @id
+  merchantId      String
+  authorizedAppId String?  @unique
+  salesChannelId  String?
+  type            String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deleted         Boolean  @default(false)
+
+  accessToken     String
+  tokenType       String
+  expiresIn       Int
+  expireDate      DateTime
+  refreshToken    String
+  scope           String?
+}
+
+model Influencer {
+  id              String   @id @default(cuid())
+  name            String
+  email           String   @unique
+  phone           String?
+  instagram       String?
+  tiktok          String?
+  youtube         String?
+  twitter         String?
+  commissionRate  Float    @default(5.0)
+  status          String   @default("active") // active, inactive, suspended
+  bankName        String?
+  accountNumber   String?
+  iban            String?
+  accountHolder   String?
+  totalEarnings   Float    @default(0.0)
+  totalClicks     Int      @default(0)
+  totalSales      Int      @default(0)
+  lastActivity    DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  links           Link[]
+  clicks          Click[]
+  commissions     Commission[]
+  autoPayments    AutoPayment[]
+
+  @@map("influencers")
+}
+
+model Link {
+  id                String   @id @default(cuid())
+  shortCode         String   @unique
+  originalUrl       String
+  influencerId      String
+  campaignName      String?
+  utmSource         String   @default("affiliate")
+  utmMedium         String   @default("social")
+  utmCampaign       String?
+  utmContent        String?
+  utmTerm           String?
+  status            String   @default("active") // active, inactive, expired
+  expiresAt         DateTime?
+  clickCount        Int      @default(0)
+  uniqueClickCount  Int      @default(0)
+  conversionCount   Int      @default(0)
+  totalRevenue      Float    @default(0.0)
+  lastClicked       DateTime?
+  productId         String?
+  category          String?
+  tags              String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  influencer        Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  clicks            Click[]
+  commissions       Commission[]
+
+  @@map("links")
+}
+
+model Click {
+  id              String   @id @default(cuid())
+  linkId          String
+  influencerId    String
+  ipAddress       String
+  userAgent       String
+  referer         String?
+  country         String?
+  city            String?
+  device          String   @default("unknown") // desktop, mobile, tablet, unknown
+  browser         String?
+  os              String?
+  isUnique        Boolean  @default(true)
+  converted       Boolean  @default(false)
+  orderId         String?
+  orderValue      Float?
+  commission      Float?
+  conversionTime  DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  link            Link       @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  influencer      Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  commissions     Commission[]
+
+  @@map("clicks")
+}
+
+model Commission {
+  id                String   @id @default(cuid())
+  influencerId      String
+  linkId            String
+  clickId           String
+  orderId           String   @unique
+  orderValue        Float
+  commissionRate    Float
+  commissionAmount  Float
+  status            String   @default("pending") // pending, approved, paid, cancelled
+  paymentDate       DateTime?
+  paymentMethod     String   @default("bank_transfer") // bank_transfer, paypal, other
+  paymentReference  String?
+  notes             String?
+  customerEmail     String?
+  customerName      String?
+  products          String? // JSON string for products array
+  shippingCity      String?
+  shippingCountry   String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  influencer        Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  link              Link       @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  click             Click      @relation(fields: [clickId], references: [id], onDelete: Cascade)
+
+  @@map("commissions")
+}
+
+model AutoPayment {
+  id              String   @id @default(cuid())
+  influencerId    String
+  amount          Float
+  currency        String   @default("TRY")
+  method          String   @default("bank_transfer") // bank_transfer, stripe, paypal
+  status          String   @default("pending") // pending, processing, completed, failed, cancelled
+  scheduledDate   DateTime
+  processedDate   DateTime?
+  failureReason   String?
+  transactionId   String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  influencer      Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+
+  @@map("auto_payments")
+}
