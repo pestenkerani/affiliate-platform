@@ -132,19 +132,46 @@ export default function AffiliateDashboard() {
 
   const fetchNotifications = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/notifications`);
-      setNotifications(response.data.data || []);
-      setUnreadCount(response.data.unreadCount || 0);
+      // Demo mode - return mock notifications
+      console.log('Demo mode: Using mock notifications');
+      setNotifications([
+        {
+          id: '1',
+          title: 'Yeni Komisyon',
+          message: 'Demo Influencer için komisyon ödemesi hazır',
+          type: 'success',
+          isRead: false,
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: '2',
+          title: 'Sistem Güncellemesi',
+          message: 'Demo modda çalışıyor - veritabanı bağlantısı yok',
+          type: 'info',
+          isRead: true,
+          createdAt: new Date().toISOString()
+        }
+      ]);
+      setUnreadCount(1);
     } catch (error) {
       console.error('Error fetching notifications:', error);
+      setNotifications([]);
+      setUnreadCount(0);
     }
   };
 
   const markNotificationAsRead = async (notificationId: string) => {
     try {
-      await axios.post(`${API_BASE_URL}/notifications`, { notificationId });
-      // Bildirimleri yenile
-      fetchNotifications();
+      // Demo mode - just update local state
+      console.log('Demo mode: Marking notification as read:', notificationId);
+      setNotifications(prev => 
+        prev.map(notif => 
+          notif.id === notificationId 
+            ? { ...notif, isRead: true }
+            : notif
+        )
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }

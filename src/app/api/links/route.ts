@@ -1,78 +1,63 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { generateShortCode, addUtmParams } from '@/lib/utils';
 import { CacheService, generateCacheKey } from '@/lib/cache-service';
 import { QueryOptimizer, ApiResponse, RequestValidator, CacheInvalidator, PerformanceMonitor } from '@/lib/api-optimization';
-
-const prisma = new PrismaClient();
 
 // GET /api/links - Tüm linkleri getir
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const stopTimer = PerformanceMonitor.startTimer('links:get');
   
   try {
-    const { searchParams } = new URL(request.url);
-    
-    // Request validation
-    const { page, limit } = RequestValidator.validatePagination(searchParams);
-    const influencerId = searchParams.get('influencerId');
-    
-    // Cache key oluştur
-    const cacheKey = generateCacheKey('links:list', {
-      page, limit, influencerId
-    });
-    
-    // Cache'den kontrol et
-    const cached = CacheService.get<NextResponse>(cacheKey);
-    if (cached) {
-      stopTimer();
-      return cached;
-    }
-
-    // Query optimization
-    const query = QueryOptimizer.optimizeFilterQuery({ influencerId });
-    const optimizedQuery = QueryOptimizer.optimizePaginationQuery(
-      { where: query, orderBy: { createdAt: 'desc' } },
-      page,
-      limit
-    );
-
-    const [links, total] = await Promise.all([
-      prisma.link.findMany({
-        ...optimizedQuery,
-        include: {
-          influencer: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              commissionRate: true
-            }
-          },
-          _count: {
-            select: {
-              clicks: true,
-              commissions: true
-            }
-          }
+    // Demo mode - return mock data
+    const demoLinks = [
+      {
+        id: 'demo-link-1',
+        shortCode: 'demo123',
+        originalUrl: 'https://example.com/product',
+        campaignName: 'Demo Campaign',
+        influencerId: 'demo-1',
+        createdAt: new Date().toISOString(),
+        influencer: {
+          id: 'demo-1',
+          name: 'Demo Influencer',
+          email: 'demo@influencer.com',
+          commissionRate: 10
+        },
+        _count: {
+          clicks: 150,
+          commissions: 5
         }
-      }),
-      prisma.link.count({ where: query })
-    ]);
+      },
+      {
+        id: 'demo-link-2',
+        shortCode: 'test456',
+        originalUrl: 'https://example.com/product2',
+        campaignName: 'Test Campaign',
+        influencerId: 'demo-2',
+        createdAt: new Date().toISOString(),
+        influencer: {
+          id: 'demo-2',
+          name: 'Test Influencer',
+          email: 'test@influencer.com',
+          commissionRate: 8
+        },
+        _count: {
+          clicks: 89,
+          commissions: 3
+        }
+      }
+    ];
 
     const response = NextResponse.json({
       success: true,
-      data: links,
+      data: demoLinks,
       pagination: {
-        current: page,
-        pages: Math.ceil(total / limit),
-        total,
-        limit
+        current: 1,
+        pages: 1,
+        total: demoLinks.length,
+        limit: 20
       }
     });
-    
-    // Cache'e kaydet (5 dakika)
-    CacheService.set(cacheKey, response, 300);
     
     stopTimer();
     return response;
@@ -107,78 +92,45 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       tags = []
     } = body;
 
-    // Influencer'ın var olup olmadığını kontrol et
-    const influencer = await prisma.influencer.findUnique({
-      where: { id: influencerId }
-    });
-    
-    if (!influencer) {
-      stopTimer();
-      return NextResponse.json(
-        { error: 'Influencer not found' },
-        { status: 404 }
-      );
-    }
-
-    // UTM parametrelerini hazırla
-    const utmParams = {
-      utm_source: utmSource,
-      utm_medium: utmMedium,
-      utm_campaign: utmCampaign,
-      utm_content: utmContent,
-      utm_term: utmTerm
+    // Demo mode - return mock created link
+    const mockLink = {
+      id: `demo-link-${Date.now()}`,
+      shortCode: generateShortCode(),
+      originalUrl: addUtmParams(originalUrl, {
+        utm_source: utmSource,
+        utm_medium: utmMedium,
+        utm_campaign: utmCampaign,
+        utm_content: utmContent,
+        utm_term: utmTerm
+      }),
+      influencerId,
+      campaignName,
+      utmSource,
+      utmMedium,
+      utmCampaign,
+      utmContent,
+      utmTerm,
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
+      productId,
+      category,
+      tags,
+      createdAt: new Date().toISOString(),
+      influencer: {
+        id: influencerId,
+        name: 'Demo Influencer',
+        email: 'demo@influencer.com'
+      }
     };
 
-    // Orijinal URL'ye UTM parametrelerini ekle
-    const urlWithUtm = addUtmParams(originalUrl, utmParams);
-
-    // Kısa kod oluştur
-    const shortCode = generateShortCode();
-
-    // Link oluştur
-    const link = await prisma.link.create({
-      data: {
-        shortCode,
-        originalUrl: urlWithUtm,
-        influencerId,
-        campaignName,
-        utmSource,
-        utmMedium,
-        utmCampaign,
-        utmContent,
-        utmTerm,
-        expiresAt: expiresAt ? new Date(expiresAt) : null,
-        productId,
-        category,
-        tags
-      },
-      include: {
-        influencer: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
-    });
-
-    const shortUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/s/${link.shortCode}`;
-
-    // Cache'i temizle
-    CacheInvalidator.invalidateLinkCache(link.id, influencerId);
+    const shortUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/s/${mockLink.shortCode}`;
 
     const response = NextResponse.json({
       success: true,
       data: {
-        id: link.id,
-        shortCode: link.shortCode,
-        shortUrl,
-        originalUrl: link.originalUrl,
-        campaignName: link.campaignName,
-        influencer: link.influencer,
-        createdAt: link.createdAt
-      }
+        ...mockLink,
+        shortUrl
+      },
+      message: 'Demo mode: Link created successfully'
     });
     
     stopTimer();
@@ -192,4 +144,3 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 }
-

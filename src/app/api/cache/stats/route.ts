@@ -32,3 +32,4 @@ export async function GET(request: NextRequest) {
     return ApiResponse.error('Failed to fetch cache stats', 500);
   }
 }
+

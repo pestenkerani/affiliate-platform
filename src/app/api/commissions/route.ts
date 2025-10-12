@@ -1,78 +1,62 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { CacheService, generateCacheKey } from '@/lib/cache-service';
 import { QueryOptimizer, ApiResponse, RequestValidator, CacheInvalidator, PerformanceMonitor } from '@/lib/api-optimization';
-
-const prisma = new PrismaClient();
 
 // GET /api/commissions - Komisyon listesi
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const stopTimer = PerformanceMonitor.startTimer('commissions:get');
   
   try {
-    const { searchParams } = new URL(request.url);
-    
-    // Request validation
-    const { page, limit } = RequestValidator.validatePagination(searchParams);
-    const status = searchParams.get('status');
-    const influencerId = searchParams.get('influencerId');
-    
-    // Cache key oluştur
-    const cacheKey = generateCacheKey('commissions:list', {
-      page, limit, status, influencerId
-    });
-    
-    // Cache'den kontrol et
-    const cached = CacheService.get<NextResponse>(cacheKey);
-    if (cached) {
-      stopTimer();
-      return cached;
-    }
-
-    // Query optimization
-    const query = QueryOptimizer.optimizeFilterQuery({ status, influencerId });
-    const optimizedQuery = QueryOptimizer.optimizePaginationQuery(
-      { where: query, orderBy: { createdAt: 'desc' } },
-      page,
-      limit
-    );
-
-    const [commissions, total] = await Promise.all([
-      prisma.commission.findMany({
-        ...optimizedQuery,
-        include: {
-          influencer: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          },
-          link: {
-            select: {
-              id: true,
-              shortCode: true,
-              campaignName: true
-            }
-          }
+    // Demo mode - return mock data
+    const demoCommissions = [
+      {
+        id: 'demo-comm-1',
+        amount: 25.50,
+        status: 'pending',
+        influencerId: 'demo-1',
+        linkId: 'demo-link-1',
+        createdAt: new Date().toISOString(),
+        influencer: {
+          id: 'demo-1',
+          name: 'Demo Influencer',
+          email: 'demo@influencer.com'
+        },
+        link: {
+          id: 'demo-link-1',
+          shortCode: 'demo123',
+          campaignName: 'Demo Campaign'
         }
-      }),
-      prisma.commission.count({ where: query })
-    ]);
+      },
+      {
+        id: 'demo-comm-2',
+        amount: 15.75,
+        status: 'completed',
+        influencerId: 'demo-2',
+        linkId: 'demo-link-2',
+        createdAt: new Date().toISOString(),
+        influencer: {
+          id: 'demo-2',
+          name: 'Test Influencer',
+          email: 'test@influencer.com'
+        },
+        link: {
+          id: 'demo-link-2',
+          shortCode: 'test456',
+          campaignName: 'Test Campaign'
+        }
+      }
+    ];
 
     const response = NextResponse.json({
       success: true,
-      data: commissions,
+      data: demoCommissions,
       pagination: {
-        current: page,
-        pages: Math.ceil(total / limit),
-        total,
-        limit
+        current: 1,
+        pages: 1,
+        total: demoCommissions.length,
+        limit: 20
       }
     });
-    
-    // Cache'e kaydet (5 dakika)
-    CacheService.set(cacheKey, response, 300);
     
     stopTimer();
     return response;
@@ -85,5 +69,3 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     );
   }
 }
-
-

@@ -35,26 +35,32 @@ export function useBaseHomePage() {
      */
     const initializeAuthFlow = async () => {
       try {
+        // Demo mode - skip ikas authentication
+        console.log('Demo mode: Redirecting to affiliate dashboard');
+        router.push('/affiliate');
+        return;
+
+        // Original ikas authentication code (disabled for demo)
         // Close any existing loader in the ikas AppBridge to prevent UI conflicts
-        AppBridgeHelper.closeLoader();
+        // AppBridgeHelper.closeLoader();
 
         // Attempt to retrieve token from iFrame context (when app runs inside ikas dashboard)
-        const existingToken = await TokenHelpers.getTokenForIframeApp();
+        // const existingToken = await TokenHelpers.getTokenForIframeApp();
 
-        if (existingToken) {
-          // Valid token found - user is already authenticated, proceed to main application
-          router.push('/dashboard');
-          return;
-        }
+        // if (existingToken) {
+        //   // Valid token found - user is already authenticated, proceed to main application
+        //   router.push('/dashboard');
+        //   return;
+        // }
 
-        // No valid token found - need to handle authorization flow
-        await handleAuthorizationFlow();
+        // // No valid token found - need to handle authorization flow
+        // await handleAuthorizationFlow();
 
       } catch (error) {
         console.error('Error during base home page initialization:', error);
         
-        // Fallback to authorization page on any unexpected errors
-        router.push('/authorize-store');
+        // Fallback to affiliate page on any unexpected errors
+        router.push('/affiliate');
       } finally {
         // Always reset loading state when initialization completes
         setIsLoading(false);

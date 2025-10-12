@@ -649,3 +649,4 @@ export class AdvancedAnalyticsService {
 // Export singleton instance
 export const advancedAnalyticsService = AdvancedAnalyticsService.getInstance();
 
+
