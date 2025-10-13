@@ -82,7 +82,27 @@ The health endpoint will show:
 - Security settings status
 - All configured services
 
-### 4. Deploy to Vercel
+### 4. Setup Custom Domain (Optional)
+
+#### Option A: Automatic Setup
+
+```bash
+# Generate domain setup guide
+pnpm run setup:domain
+```
+
+This will create:
+- `DOMAIN_SETUP.md` - Detailed domain setup instructions
+- `dns-records.txt` - DNS records template
+
+#### Option B: Manual Setup
+
+1. Go to Vercel dashboard → Settings → Domains
+2. Add your domain
+3. Configure DNS records at your registrar
+4. Update environment variables
+
+### 5. Deploy to Vercel
 
 ```bash
 # Install Vercel CLI
