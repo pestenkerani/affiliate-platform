@@ -54,7 +54,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: mockAnalytics,
+      data: {
+        metrics: mockAnalytics
+      },
       period,
       message: 'Demo mode: Advanced analytics data loaded'
     });

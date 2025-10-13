@@ -47,7 +47,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: mockRealtimeMetrics,
+      data: {
+        metrics: mockRealtimeMetrics
+      },
       timestamp: new Date().toISOString(),
       message: 'Demo mode: Realtime metrics loaded'
     });
