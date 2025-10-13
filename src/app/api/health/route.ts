@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateEnv } from '@/lib/env-validation';
+import { log } from '@/lib/logger';
 
 // GET /api/health - Health check endpoint
 export async function GET(request: NextRequest) {
@@ -29,8 +30,18 @@ export async function GET(request: NextRequest) {
         url: process.env.REDIS_URL || 'not configured'
       },
       analytics: {
-        googleAnalytics: !!process.env.GOOGLE_ANALYTICS_ID,
+        googleAnalytics: !!process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID,
         sentry: !!process.env.SENTRY_DSN
+      },
+      monitoring: {
+        logging: {
+          level: process.env.LOG_LEVEL || 'info',
+          format: process.env.LOG_FORMAT || 'json'
+        },
+        sentry: {
+          configured: !!process.env.SENTRY_DSN,
+          environment: process.env.SENTRY_ENVIRONMENT || 'production'
+        }
       },
       security: {
         sessionSecret: !!process.env.SESSION_SECRET,
