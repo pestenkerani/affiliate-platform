@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
 
 // PATCH /api/commissions/[id]/status - Komisyon durumunu güncelle
 export async function PATCH(
@@ -12,38 +9,31 @@ export async function PATCH(
     const { id } = await params;
     const { status, notes } = await request.json();
 
-    const updateData: any = { status };
-    if (notes) {
-      updateData.notes = notes;
-    }
-    if (status === 'paid') {
-      updateData.paymentDate = new Date();
-    }
-
-    const commission = await prisma.commission.update({
-      where: { id },
-      data: updateData,
-      include: {
-        influencer: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        },
-        link: {
-          select: {
-            id: true,
-            shortCode: true,
-            campaignName: true
-          }
-        }
-      }
-    });
+    // Demo mode - return mock updated commission
+    const mockCommission = {
+      id,
+      status,
+      notes: notes || null,
+      paymentDate: status === 'paid' ? new Date().toISOString() : null,
+      influencer: {
+        id: 'demo-1',
+        name: 'Demo Influencer',
+        email: 'demo@influencer.com'
+      },
+      link: {
+        id: 'demo-link-1',
+        shortCode: 'demo123',
+        campaignName: 'Demo Campaign'
+      },
+      amount: 25.50,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
 
     return NextResponse.json({
       success: true,
-      data: commission
+      data: mockCommission,
+      message: 'Demo mode: Commission status updated successfully'
     });
   } catch (error) {
     console.error('Commission status update error:', error);

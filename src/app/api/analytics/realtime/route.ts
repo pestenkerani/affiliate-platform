@@ -1,31 +1,61 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { advancedAnalyticsService } from '@/lib/advanced-analytics-service';
-import { withSecurity } from '@/lib/security-middleware';
 
-// GET /api/analytics/realtime - Get real-time analytics metrics
-export const GET = withSecurity({
-  method: ['GET'],
-  rateLimit: { windowMs: 60 * 1000, max: 60 }, // Higher limit for real-time data
-  cors: { origin: '*', methods: ['GET'], headers: ['Content-Type'] },
-})(async (request: NextRequest) => {
+// GET /api/analytics/realtime - Gerçek zamanlı metrikler
+export async function GET(request: NextRequest) {
   try {
-    // Get real-time metrics
-    const metrics = await advancedAnalyticsService.getRealTimeMetrics();
+    // Demo mode - return mock realtime data
+    const mockRealtimeMetrics = {
+      activeUsers: Math.floor(Math.random() * 50) + 10,
+      currentClicks: Math.floor(Math.random() * 20) + 5,
+      currentConversions: Math.floor(Math.random() * 3) + 1,
+      currentRevenue: Math.floor(Math.random() * 100) + 20,
+      topPages: [
+        { page: '/product/demo-1', views: 45, conversions: 3 },
+        { page: '/product/demo-2', views: 32, conversions: 2 },
+        { page: '/product/demo-3', views: 28, conversions: 1 }
+      ],
+      recentActivity: [
+        {
+          id: '1',
+          type: 'click',
+          influencer: 'Demo Influencer',
+          page: '/product/demo-1',
+          timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString()
+        },
+        {
+          id: '2',
+          type: 'conversion',
+          influencer: 'Test Influencer',
+          page: '/product/demo-2',
+          timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString()
+        },
+        {
+          id: '3',
+          type: 'click',
+          influencer: 'Sample Influencer',
+          page: '/product/demo-3',
+          timestamp: new Date(Date.now() - 8 * 60 * 1000).toISOString()
+        }
+      ],
+      performanceMetrics: {
+        averageLoadTime: 1.2,
+        bounceRate: 35.5,
+        sessionDuration: 4.5,
+        pagesPerSession: 3.2
+      }
+    };
 
     return NextResponse.json({
       success: true,
-      data: {
-        timestamp: new Date().toISOString(),
-        metrics,
-      },
+      data: mockRealtimeMetrics,
+      timestamp: new Date().toISOString(),
+      message: 'Demo mode: Realtime metrics loaded'
     });
   } catch (error) {
-    console.error('Error fetching real-time analytics:', error);
+    console.error('Realtime analytics error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch real-time analytics' },
+      { error: 'Failed to fetch realtime metrics' },
       { status: 500 }
     );
   }
-});
-
-
+}

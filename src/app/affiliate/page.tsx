@@ -276,7 +276,19 @@ export default function AffiliateDashboard() {
   const clearDemoData = async () => {
     try {
       await axios.post(`${API_BASE_URL}/demo/clear`);
-      fetchData();
+      
+      // Demo modda state'leri temizle
+      setInfluencers([]);
+      setLinks([]);
+      setCommissions([]);
+      setStats({
+        totalInfluencers: 0,
+        totalLinks: 0,
+        totalClicks: 0,
+        totalCommissions: 0,
+      });
+      
+      console.log('Demo mode: Data cleared successfully');
     } catch (error) {
       console.error('Error clearing demo data:', error);
     }
