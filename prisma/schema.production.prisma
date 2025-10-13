@@ -1,4 +1,4 @@
-// Production Prisma schema for PostgreSQL
+// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
@@ -10,146 +10,134 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model AuthToken {
+  id              String   @id
+  merchantId      String
+  authorizedAppId String?  @unique
+  accessToken     String
+  refreshToken    String?
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("auth_tokens")
+}
+
 model Influencer {
-  id             String   @id @default(cuid())
-  name           String
-  email          String   @unique
-  phone          String?
-  instagram      String?
-  tiktok         String?
-  youtube        String?
-  twitter        String?
-  commissionRate Float    @default(5.0)
-  bankName       String?
-  accountNumber  String?
-  iban           String?
-  accountHolder  String?
-  status         String   @default("active")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id              String   @id @default(cuid())
+  name            String
+  email           String   @unique
+  phone           String?
+  instagram       String?
+  tiktok          String?
+  youtube         String?
+  twitter         String?
+  commissionRate  Float    @default(5)
+  status          String   @default("active") // active, inactive, suspended
+  bankName        String?
+  accountNumber   String?
+  iban            String?
+  accountHolder   String?
+  totalEarnings   Float    @default(0)
+  totalClicks     Int      @default(0)
+  totalSales      Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   // Relations
-  links          Link[]
-  clicks         Click[]
-  commissions    Commission[]
-  autoPayments   AutoPayment[]
+  links           Link[]
+  clicks          Click[]
+  commissions     Commission[]
+  autoPayments    AutoPayment[]
 
   @@map("influencers")
 }
 
 model Link {
-  id            String    @id @default(cuid())
-  shortCode     String    @unique
-  originalUrl   String
-  influencerId  String
-  campaignName  String?
-  utmSource     String    @default("affiliate")
-  utmMedium     String    @default("social")
-  utmCampaign   String?
-  utmContent    String?
-  utmTerm       String?
-  expiresAt     DateTime?
-  productId     String?
-  category      String?
-  tags          String[]
-  status        String    @default("active")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id              String   @id @default(cuid())
+  shortCode       String   @unique
+  originalUrl     String
+  influencerId    String
+  campaignName    String?
+  utmSource       String?
+  utmMedium       String?
+  utmCampaign     String?
+  utmContent      String?
+  utmTerm         String?
+  expiresAt       DateTime?
+  productId       String?
+  category        String?
+  tags            String[]
+  status          String   @default("active") // active, inactive, expired
+  clickCount      Int      @default(0)
+  conversionCount Int     @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   // Relations
-  influencer    Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
-  clicks        Click[]
-  commissions   Commission[]
+  influencer      Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  clicks          Click[]
+  commissions     Commission[]
 
   @@map("links")
 }
 
 model Click {
-  id         String   @id @default(cuid())
-  linkId     String
-  influencerId String
-  ipAddress  String?
-  userAgent  String?
-  referer    String?
-  country    String?
-  city       String?
-  device     String?
-  browser    String?
-  os         String?
-  createdAt  DateTime @default(now())
+  id              String   @id @default(cuid())
+  linkId          String
+  ipAddress       String?
+  userAgent       String?
+  referrer        String?
+  country         String?
+  city            String?
+  device          String?
+  browser         String?
+  os              String?
+  createdAt       DateTime @default(now())
 
   // Relations
-  link       Link       @relation(fields: [linkId], references: [id], onDelete: Cascade)
-  influencer Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  link            Link @relation(fields: [linkId], references: [id], onDelete: Cascade)
 
   @@map("clicks")
 }
 
 model Commission {
-  id           String   @id @default(cuid())
-  influencerId String
-  linkId       String
-  amount       Float
-  status       String   @default("pending") // pending, approved, paid, cancelled
-  orderId      String?
-  productId    String?
-  productName  String?
-  orderValue   Float?
-  commissionRate Float
-  paidAt       DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String   @id @default(cuid())
+  influencerId    String
+  linkId          String
+  orderId         String?
+  orderValue      Float
+  commissionRate  Float
+  commissionAmount Float
+  status          String   @default("pending") // pending, approved, paid, rejected
+  paymentDate     DateTime?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   // Relations
-  influencer   Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
-  link         Link       @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  influencer      Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  link            Link @relation(fields: [linkId], references: [id], onDelete: Cascade)
 
   @@map("commissions")
 }
 
 model AutoPayment {
-  id           String   @id @default(cuid())
-  influencerId String
-  isEnabled    Boolean  @default(false)
-  minAmount    Float    @default(50.0)
-  paymentMethod String? // stripe, paypal, bank_transfer
-  paymentDetails Json?   // encrypted payment details
-  lastPaymentAt DateTime?
-  nextPaymentAt DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String   @id @default(cuid())
+  influencerId    String
+  amount          Float
+  currency        String   @default("TRY")
+  method          String   @default("bank_transfer") // bank_transfer, stripe, paypal
+  status          String   @default("pending") // pending, processing, completed, failed, cancelled
+  scheduledDate   DateTime
+  processedDate   DateTime?
+  failureReason   String?
+  transactionId   String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   // Relations
-  influencer   Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  influencer      Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
 
   @@map("auto_payments")
 }
-
-model Notification {
-  id        String   @id @default(cuid())
-  title     String
-  message   String
-  type      String   @default("info") // info, success, warning, error
-  isRead    Boolean  @default(false)
-  userId    String?  // For user-specific notifications
-  data      Json?    // Additional data
-  createdAt DateTime @default(now())
-
-  @@map("notifications")
-}
-
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  role      String   @default("viewer") // admin, manager, viewer
-  isActive  Boolean  @default(true)
-  lastLoginAt DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("users")
-}
-
-
-

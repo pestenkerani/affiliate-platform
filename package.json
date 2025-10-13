@@ -17,6 +17,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
+    "migrate:postgres": "node scripts/migrate-to-postgres.js",
     "apply:ai-rules": "npx @intellectronica/ruler apply"
   },
   "packageManager": "pnpm@10.4.1",

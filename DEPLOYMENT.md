@@ -19,13 +19,37 @@ cp env.example .env.local
 ```
 
 **Required Variables:**
-- `DATABASE_URL` - PostgreSQL connection string
-- `NEXTAUTH_SECRET` - Random secret for authentication
+- `DATABASE_URL` - PostgreSQL connection string (Vercel Postgres)
+- `SESSION_SECRET` - Random secret for authentication
 - `NEXT_PUBLIC_BASE_URL` - Your production domain
-- `IKAS_API_KEY` - Your Ikas API key
-- `STRIPE_SECRET_KEY` - Stripe secret key for payments
+- `DEMO_MODE` - Set to "false" for production
 
-### 2. Deploy to Vercel
+**Optional Variables:**
+- `SMTP_HOST` - Email server host
+- `SMTP_USER` - Email username
+- `SMTP_PASS` - Email password
+- `STRIPE_SECRET_KEY` - Stripe secret key for payments
+- `REDIS_URL` - Redis connection string
+- `GOOGLE_ANALYTICS_ID` - Google Analytics tracking ID
+- `SENTRY_DSN` - Sentry error tracking DSN
+
+### 2. Setup PostgreSQL Database
+
+#### Option A: Vercel Postgres (Recommended)
+
+1. Go to your Vercel project dashboard
+2. Navigate to "Storage" tab
+3. Click "Create Database" → "Postgres"
+4. Choose a name (e.g., "affiliate-db")
+5. Copy the connection string to your environment variables
+
+#### Option B: External PostgreSQL (Supabase, Railway, etc.)
+
+1. Create a PostgreSQL database on your preferred provider
+2. Copy the connection string
+3. Add it to your environment variables as `DATABASE_URL`
+
+### 3. Deploy to Vercel
 
 ```bash
 # Install Vercel CLI
