@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -104,7 +104,7 @@ export default function AdvancedAnalytics({ className }: AdvancedAnalyticsProps)
   const [period, setPeriod] = useState('last_30_days');
   const [realtimeMetrics, setRealtimeMetrics] = useState<any>(null);
 
-  const fetchAnalytics = async (selectedPeriod: string) => {
+  const fetchAnalytics = useCallback(async (selectedPeriod: string) => {
     try {
       setLoading(true);
       const response = await fetch(`/api/analytics/advanced?period=${selectedPeriod}`);
@@ -118,9 +118,9 @@ export default function AdvancedAnalytics({ className }: AdvancedAnalyticsProps)
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchRealtimeMetrics = async () => {
+  const fetchRealtimeMetrics = useCallback(async () => {
     try {
       const response = await fetch('/api/analytics/realtime');
       const data = await response.json();
@@ -131,18 +131,18 @@ export default function AdvancedAnalytics({ className }: AdvancedAnalyticsProps)
     } catch (error) {
       console.error('Error fetching real-time metrics:', error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchAnalytics(period);
-  }, [period]);
+  }, [period, fetchAnalytics]);
 
   useEffect(() => {
     // Fetch real-time metrics every 30 seconds
     fetchRealtimeMetrics();
     const interval = setInterval(fetchRealtimeMetrics, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchRealtimeMetrics]);
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
