@@ -12,10 +12,24 @@
 
 ### 1. Prepare Environment Variables
 
-Copy `env.example` to `.env.local` and fill in your production values:
+#### Option A: Automatic Setup (Recommended)
 
 ```bash
-cp env.example .env.local
+# Generate environment files with secure defaults
+pnpm run setup:env
+```
+
+This will create:
+- `.env.local` - Local development environment
+- `.env.example` - Template for other developers
+- `vercel-env.txt` - Values to copy to Vercel dashboard
+
+#### Option B: Manual Setup
+
+Copy `env.template` to `.env.local` and fill in your production values:
+
+```bash
+cp env.template .env.local
 ```
 
 **Required Variables:**
@@ -49,7 +63,26 @@ cp env.example .env.local
 2. Copy the connection string
 3. Add it to your environment variables as `DATABASE_URL`
 
-### 3. Deploy to Vercel
+### 3. Test Environment Setup
+
+Before deploying, test your environment configuration:
+
+```bash
+# Start development server
+pnpm run dev
+
+# Test health endpoint
+curl http://localhost:3000/api/health
+```
+
+The health endpoint will show:
+- Environment validation status
+- Database connection status
+- Email configuration status
+- Security settings status
+- All configured services
+
+### 4. Deploy to Vercel
 
 ```bash
 # Install Vercel CLI
