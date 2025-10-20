@@ -1,0 +1,61 @@
+# Vercel Environment Variables
+# Add these to your Vercel project settings
+
+# Required
+DATABASE_URL=postgresql://username:password@host:port/database?schema=public
+SESSION_SECRET=7c153679a638abf802e474733b9bab2653cae9765df33d1b2fdc92b7e2b69c381353b3255d1d68bb6ec7ea39d974af3f42dee821ad5854bd1d70df5ded4b415c
+DEMO_MODE=false
+NEXT_PUBLIC_BASE_URL=https://your-domain.com
+
+# Optional
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+SMTP_SECURE=false
+
+STRIPE_SECRET_KEY=sk_live_your_stripe_secret_key
+STRIPE_PUBLISHABLE_KEY=pk_live_your_stripe_publishable_key
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
+
+REDIS_URL=redis://localhost:6379
+GOOGLE_ANALYTICS_ID=G-XXXXXXXXXX
+SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
+SENTRY_ENVIRONMENT=production
+
+LOG_LEVEL=info
+LOG_FORMAT=json
+
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+CORS_ORIGIN=https://your-domain.com
+CORS_CREDENTIALS=true
+
+SECURITY_HEADERS=true
+CONTENT_SECURITY_POLICY=default-src 'self'
+
+IKAS_API_KEY=your-ikas-api-key
+IKAS_API_URL=https://api.ikas.com
+
+NODE_ENV=production
+DEBUG=false
+
+API_TIMEOUT=10000
+API_RETRY_ATTEMPTS=3
+
+MAX_FILE_SIZE=10485760
+ALLOWED_FILE_TYPES=image/jpeg,image/png,image/gif
+
+FCM_SERVER_KEY=
+FCM_PROJECT_ID=
+
+WEBHOOK_URL=https://your-domain.com/api/webhooks
+WEBHOOK_SECRET=your-webhook-secret
+
+BACKUP_SCHEDULE=0 2 * * *
+BACKUP_RETENTION_DAYS=30
+BACKUP_STORAGE=s3
+
+MAINTENANCE_MODE=false
+MAINTENANCE_MESSAGE=System is under maintenance

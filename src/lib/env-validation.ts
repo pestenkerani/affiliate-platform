@@ -116,12 +116,12 @@ export function isDemoMode(): boolean {
 
 export function getDatabaseUrl(): string {
   const env = getValidatedEnv();
-  return env.DATABASE_URL;
+  return env?.DATABASE_URL || '';
 }
 
 export function getSessionSecret(): string {
   const env = getValidatedEnv();
-  return env.SESSION_SECRET;
+  return env?.SESSION_SECRET || '';
 }
 
 export function getBaseUrl(): string {
@@ -214,3 +214,4 @@ export const config = {
     message: process.env.MAINTENANCE_MESSAGE || 'System is under maintenance',
   },
 };
+

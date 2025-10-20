@@ -44,3 +44,4 @@ export async function GET(request: NextRequest) {
     return new NextResponse('Error generating sitemap', { status: 500 });
   }
 }
+

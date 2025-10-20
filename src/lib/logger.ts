@@ -186,3 +186,4 @@ export function setLogLevel(level: LogLevel) {
 export function getLogLevel(): string {
   return logger.level;
 }
+

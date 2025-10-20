@@ -36,3 +36,4 @@ Crawl-delay: 1`;
     return new NextResponse('Error generating robots.txt', { status: 500 });
   }
 }
+
