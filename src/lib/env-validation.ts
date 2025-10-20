@@ -126,17 +126,17 @@ export function getSessionSecret(): string {
 
 export function getBaseUrl(): string {
   const env = getValidatedEnv();
-  return env.NEXT_PUBLIC_BASE_URL;
+  return env?.NEXT_PUBLIC_BASE_URL || '';
 }
 
 export function getLogLevel(): string {
   const env = getValidatedEnv();
-  return env.LOG_LEVEL;
+  return env?.LOG_LEVEL || 'info';
 }
 
 export function getLogFormat(): string {
   const env = getValidatedEnv();
-  return env.LOG_FORMAT;
+  return env?.LOG_FORMAT || 'json';
 }
 
 // Configuration object
