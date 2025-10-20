@@ -90,7 +90,8 @@ class EnhancedLogger {
     
     // Send to Sentry
     if (process.env.SENTRY_DSN && process.env.DEMO_MODE !== 'true') {
-      Sentry.captureMessage(message, 'warning', {
+      Sentry.captureMessage(message, {
+        level: 'warning',
         tags: {
           level: 'warn',
           ...meta,
