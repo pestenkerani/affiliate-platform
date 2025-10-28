@@ -49,6 +49,12 @@ export async function GET(request: NextRequest) {
         clicks: Math.floor(Math.random() * 200) + 50,
         conversions: Math.floor(Math.random() * 10) + 2,
         revenue: Math.floor(Math.random() * 500) + 100
+      })),
+      monthlyData: Array.from({ length: 12 }, (_, i) => ({
+        month: i + 1,
+        clicks: Math.floor(Math.random() * 5000) + 1000,
+        conversions: Math.floor(Math.random() * 200) + 50,
+        revenue: Math.floor(Math.random() * 5000) + 2000
       }))
     };
 

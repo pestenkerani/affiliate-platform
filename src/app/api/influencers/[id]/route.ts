@@ -6,10 +6,10 @@ const prisma = new PrismaClient();
 // GET /api/influencers/[id] - Influencer detaylarını getir
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const { id } = params;
 
     const influencer = await prisma.influencer.findUnique({
       where: { id },
@@ -51,10 +51,10 @@ export async function GET(
 // PUT /api/influencers/[id] - Influencer güncelle
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const { id } = params;
     const updateData = await request.json();
 
     // Email güncelleniyorsa benzersizlik kontrol et
@@ -95,10 +95,10 @@ export async function PUT(
 // DELETE /api/influencers/[id] - Influencer sil
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const { id } = params;
 
     // Influencer'ın aktif linkleri var mı kontrol et
     const activeLinks = await prisma.link.count({
