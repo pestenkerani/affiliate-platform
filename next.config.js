@@ -24,13 +24,22 @@ const nextConfig = {
     DEMO_MODE: 'true',
   },
   // Webpack configuration
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     // Disable fs module on client side (required for Vercel)
     config.resolve.fallback = {
       ...config.resolve.fallback,
       fs: false,
+      net: false,
+      tls: false,
     };
 
+    // Skip Prisma on client side in production
+    if (!isServer) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        '@prisma/client': false,
+      };
+    }
   
     return config;
   },

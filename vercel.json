@@ -2,10 +2,17 @@
   "version": 2,
   "regions": ["iad1"],
   "framework": "nextjs",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm run vercel-build",
+  "outputDirectory": ".next",
   "functions": {
     "src/app/api/**/*.ts": {
       "maxDuration": 30
     }
+  },
+  "env": {
+    "DEMO_MODE": "true",
+    "NODE_ENV": "production"
   },
   "headers": [
     {
