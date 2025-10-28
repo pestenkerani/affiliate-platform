@@ -374,7 +374,15 @@ export default function AffiliateDashboard() {
 
   const handlePayCommission = async (id: string) => {
     try {
+      setActionLoading(`pay-${id}`);
+      
+      // Update status to paid
       await axios.patch(`${API_BASE_URL}/commissions/${id}/status`, { status: 'paid' });
+      
+      // Optimistic update
+      setCommissions(prev => prev.map(comm => 
+        comm.id === id ? { ...comm, status: 'paid', paymentDate: new Date().toISOString() } : comm
+      ));
       
       // Email bildirimi gönder
       const commission = commissions.find(c => c.id === id);
@@ -389,9 +397,20 @@ export default function AffiliateDashboard() {
         });
       }
       
-      fetchData();
+      // Show success message
+      alert('Ödeme başarıyla tamamlandı!');
+      
     } catch (error) {
       console.error('Error paying commission:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata';
+      alert(`Ödeme yaparken hata oluştu: ${errorMessage}`);
+      
+      // Revert optimistic update
+      setCommissions(prev => prev.map(comm => 
+        comm.id === id ? { ...comm, status: 'approved', paymentDate: undefined } : comm
+      ));
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -1118,8 +1137,9 @@ export default function AffiliateDashboard() {
                                 variant="outline"
                                 onClick={() => handlePayCommission(commission.id)}
                                 className="text-blue-600"
+                                disabled={actionLoading === `pay-${commission.id}`}
                               >
-                                Öde
+                                {actionLoading === `pay-${commission.id}` ? 'Ödeniyor...' : 'Öde'}
                               </Button>
                             )}
                             {commission.status !== 'cancelled' && (
