@@ -3,7 +3,20 @@ import { NextRequest, NextResponse } from 'next/server';
 // GET /api/debug - Debug endpoint for troubleshooting
 export async function GET(request: NextRequest) {
   try {
-    const debug = {
+    const debug: {
+      timestamp: string;
+      environment: string;
+      envVars: {
+        DATABASE_URL: string;
+        DEMO_MODE: string;
+        NEXT_PUBLIC_BASE_URL: string;
+        SESSION_SECRET: string;
+      };
+      prisma: {
+        status: string;
+        error?: string;
+      };
+    } = {
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'unknown',
       envVars: {
