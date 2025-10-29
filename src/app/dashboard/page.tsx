@@ -15,8 +15,8 @@ export default function DashboardPage() {
   const fetchStoreName = useCallback(async (currentToken: string) => {
     try {
       const res = await ApiRequests.ikas.getMerchant(currentToken);
-      if (res.status === 200 && res.data?.data?.merchantInfo?.storeName) {
-        setStoreName(res.data.data.merchantInfo.storeName);
+      if (res.status === 200 && res.data?.data?.merchant?.name) {
+        setStoreName(res.data.data.merchant.name);
       }
     } catch (error) {
       console.error('Error fetching store name:', error);
