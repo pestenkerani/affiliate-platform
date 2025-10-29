@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateEnv } from '@/lib/env-validation';
 import { log } from '@/lib/logger';
+import { prisma } from '@/lib/prisma';
 
 // GET /api/health - Health check endpoint
 export async function GET(request: NextRequest) {
@@ -8,15 +9,33 @@ export async function GET(request: NextRequest) {
     // Temporarily disable environment validation for deployment
     // const envValidation = validateEnv();
     
+    // Test database connection
+    let databaseStatus = 'not_configured';
+    let databaseError = null;
+    
+    if (process.env.DATABASE_URL) {
+      try {
+        // Try to connect to database with a simple query
+        await prisma.$queryRaw`SELECT 1`;
+        databaseStatus = 'connected';
+      } catch (error) {
+        databaseStatus = 'error';
+        databaseError = error instanceof Error ? error.message : 'Unknown database error';
+        log('error', 'Database connection failed', { error });
+      }
+    }
+    
     const health = {
-      status: 'ok',
+      status: databaseStatus === 'connected' ? 'ok' : 'degraded',
       timestamp: new Date().toISOString(),
       version: process.env.npm_package_version || '1.0.0',
       environment: process.env.NODE_ENV || 'development',
       demoMode: process.env.DEMO_MODE === 'true',
       database: {
-        connected: !!process.env.DATABASE_URL,
-        url: process.env.DATABASE_URL ? 'configured' : 'missing'
+        status: databaseStatus,
+        connected: databaseStatus === 'connected',
+        url: process.env.DATABASE_URL ? 'configured' : 'missing',
+        error: databaseError
       },
       email: {
         configured: !!(process.env.SMTP_HOST && process.env.SMTP_USER),
