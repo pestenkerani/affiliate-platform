@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       } catch (error) {
         databaseStatus = 'error';
         databaseError = error instanceof Error ? error.message : 'Unknown database error';
-        log('error', 'Database connection failed', { error });
+        log.error('Database connection failed', { error: databaseError });
       }
     }
     
