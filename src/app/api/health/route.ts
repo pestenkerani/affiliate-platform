@@ -1,27 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateEnv } from '@/lib/env-validation';
-import { log } from '@/lib/logger';
-import { prisma } from '@/lib/prisma';
 
 // GET /api/health - Health check endpoint
 export async function GET(request: NextRequest) {
   try {
-    // Temporarily disable environment validation for deployment
-    // const envValidation = validateEnv();
-    
-    // Test database connection
+    // Test database connection safely
     let databaseStatus = 'not_configured';
     let databaseError = null;
     
     if (process.env.DATABASE_URL) {
       try {
-        // Try to connect to database with a simple query
-        await prisma.$queryRaw`SELECT 1`;
+        // Dynamically import Prisma to avoid errors if not initialized
+        const { prisma } = await import('@/lib/prisma');
+        
+        // Set timeout for database connection (10 seconds)
+        const connectionPromise = prisma.$queryRaw`SELECT 1`;
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Database connection timeout')), 10000)
+        );
+        
+        await Promise.race([connectionPromise, timeoutPromise]);
         databaseStatus = 'connected';
       } catch (error) {
         databaseStatus = 'error';
         databaseError = error instanceof Error ? error.message : 'Unknown database error';
-        log.error('Database connection failed', { error: databaseError });
+        // Log error safely
+        console.error('Database connection failed:', databaseError);
       }
     }
     
