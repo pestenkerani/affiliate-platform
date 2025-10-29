@@ -1,5 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Export type for merchant response
+export interface GetMerchantApiResponse {
+  merchant: {
+    id: string;
+    name: string;
+    subdomain: string;
+    email: string;
+    phone?: string;
+    address?: string;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
 /**
  * Demo mode - returns mock merchant data
  */
