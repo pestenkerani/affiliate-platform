@@ -11,7 +11,6 @@
     }
   },
   "env": {
-    "DEMO_MODE": "true",
     "NODE_ENV": "production"
   },
   "headers": [

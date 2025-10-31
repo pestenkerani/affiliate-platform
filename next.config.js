@@ -20,9 +20,7 @@ const withPWA = require('next-pwa')({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   allowedDevOrigins: ['*.trycloudflare.com'],
-  env: {
-    DEMO_MODE: 'true',
-  },
+  // DEMO_MODE removed from env - now reads from environment variables
   // Webpack configuration
   webpack: (config, { isServer }) => {
     // Disable fs module on client side (required for Vercel)
