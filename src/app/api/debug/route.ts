@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
       envVars: {
         DATABASE_URL: string;
         DEMO_MODE: string;
+        DEMO_MODE_raw?: string; // Raw value for debugging
         NEXT_PUBLIC_BASE_URL: string;
         SESSION_SECRET: string;
       };
@@ -16,12 +17,14 @@ export async function GET(request: NextRequest) {
         status: string;
         error?: string;
       };
+      notes?: string;
     } = {
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'unknown',
       envVars: {
         DATABASE_URL: process.env.DATABASE_URL ? '***configured***' : 'missing',
         DEMO_MODE: process.env.DEMO_MODE || 'not set',
+        DEMO_MODE_raw: process.env.DEMO_MODE, // Include raw value for debugging
         NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL || 'not set',
         SESSION_SECRET: process.env.SESSION_SECRET ? '***configured***' : 'missing',
       },
