@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { getPrisma, isPrismaAvailable } from '@/lib/prisma';
 import { withSecurity } from '@/lib/security-middleware';
-
-const prisma = new PrismaClient();
 
 // GET /api/auto-payments - Get auto payment history
 export const GET = withSecurity({
@@ -11,6 +9,54 @@ export const GET = withSecurity({
   cors: { origin: '*', methods: ['GET'], headers: ['Content-Type'] },
 })(async (request: NextRequest) => {
   try {
+    // Demo mode - return mock data
+    if (process.env.DEMO_MODE === 'true' && !isPrismaAvailable()) {
+      const mockPayments = [
+        {
+          id: 'demo-payment-1',
+          influencerId: 'demo-1',
+          amount: 250.50,
+          method: 'bank_transfer',
+          status: 'completed',
+          scheduledDate: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          influencer: {
+            id: 'demo-1',
+            name: 'Demo Influencer',
+            email: 'demo@influencer.com',
+          },
+        },
+        {
+          id: 'demo-payment-2',
+          influencerId: 'demo-2',
+          amount: 125.75,
+          method: 'bank_transfer',
+          status: 'pending',
+          scheduledDate: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          influencer: {
+            id: 'demo-2',
+            name: 'Test Influencer',
+            email: 'test@influencer.com',
+          },
+        },
+      ];
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          payments: mockPayments,
+          pagination: {
+            page: 1,
+            limit: 20,
+            total: mockPayments.length,
+            totalPages: 1,
+          },
+        },
+      });
+    }
+
+    const prisma = await getPrisma();
     const { searchParams } = new URL(request.url);
     const influencerId = searchParams.get('influencerId');
     const status = searchParams.get('status');
@@ -76,6 +122,32 @@ export const POST = withSecurity({
   try {
     const body = await request.json();
     const { influencerId, amount, method = 'bank_transfer', scheduledDate } = body;
+
+    // Demo mode - return mock data
+    if (process.env.DEMO_MODE === 'true' && !isPrismaAvailable()) {
+      const mockPayment = {
+        id: `demo-payment-${Date.now()}`,
+        influencerId,
+        amount: parseFloat(amount),
+        method,
+        scheduledDate: scheduledDate ? new Date(scheduledDate).toISOString() : new Date().toISOString(),
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        influencer: {
+          id: influencerId,
+          name: 'Demo Influencer',
+          email: 'demo@influencer.com',
+        },
+      };
+
+      return NextResponse.json({
+        success: true,
+        data: mockPayment,
+        message: 'Demo mode: Auto payment created successfully',
+      });
+    }
+
+    const prisma = await getPrisma();
 
     // Validate influencer exists
     const influencer = await prisma.influencer.findUnique({

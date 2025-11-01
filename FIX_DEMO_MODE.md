@@ -86,3 +86,4 @@ GET https://mynewapp-rho.vercel.app/api/debug
 
 **Önce Vercel'de `DEMO_MODE` değerini kontrol et ve sonucu paylaş!** 🚀
 
+

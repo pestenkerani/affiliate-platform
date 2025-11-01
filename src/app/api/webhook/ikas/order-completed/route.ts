@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { getPrisma, isPrismaAvailable } from '@/lib/prisma';
 import { getUserFromSession } from '@/lib/auth-helpers';
 import { getIkasClient } from '@/helpers/api-helpers';
-
-const prisma = new PrismaClient();
 
 // POST /api/webhook/ikas/order-completed - İkas sipariş webhook'u
 export async function POST(request: NextRequest) {
@@ -45,7 +43,22 @@ async function processIkasWebhook(webhookData: any) {
     const { orderId, totalAmount, customerEmail, customerName, products, shippingAddress } = webhookData;
 
     // Demo modu için basit komisyon hesaplama
+    if (process.env.DEMO_MODE === 'true' && !isPrismaAvailable()) {
+      // Demo mode without database - return mock success
+      return {
+        success: true,
+        message: 'Demo mode: Webhook processed successfully (no database)',
+        data: {
+          orderId,
+          commission: (totalAmount * 10) / 100, // Mock 10% commission
+          status: 'pending'
+        }
+      };
+    }
+
+    // Demo mode with database or production mode
     if (process.env.DEMO_MODE === 'true') {
+      const prisma = await getPrisma();
       // Demo veri oluştur
       const demoInfluencer = await prisma.influencer.findFirst();
       if (!demoInfluencer) {

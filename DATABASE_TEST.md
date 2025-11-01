@@ -137,3 +137,10 @@ git push
 
 **Şimdi `/api/health` endpoint'ini test et ve sonucu paylaş!** 🚀
 
+
+
+
+
+
+
+

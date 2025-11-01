@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { validateEnv } from '@/lib/env-validation';
 
 // GET /api/health - Health check endpoint
 export async function GET(request: NextRequest) {
@@ -10,16 +11,22 @@ export async function GET(request: NextRequest) {
     if (process.env.DATABASE_URL) {
       try {
         // Dynamically import Prisma to avoid errors if not initialized
-        const { prisma } = await import('@/lib/prisma');
+        const { prisma, isPrismaAvailable } = await import('@/lib/prisma');
         
-        // Set timeout for database connection (10 seconds)
-        const connectionPromise = prisma.$queryRaw`SELECT 1`;
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Database connection timeout')), 10000)
-        );
-        
-        await Promise.race([connectionPromise, timeoutPromise]);
-        databaseStatus = 'connected';
+        // Check if Prisma is available (not in demo mode without DATABASE_URL)
+        if (isPrismaAvailable()) {
+          // Set timeout for database connection (10 seconds)
+          const connectionPromise = prisma.$queryRaw`SELECT 1`;
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Database connection timeout')), 10000)
+          );
+          
+          await Promise.race([connectionPromise, timeoutPromise]);
+          databaseStatus = 'connected';
+        } else {
+          databaseStatus = 'demo_mode';
+          databaseError = 'Prisma not initialized in demo mode without DATABASE_URL';
+        }
       } catch (error) {
         databaseStatus = 'error';
         databaseError = error instanceof Error ? error.message : 'Unknown database error';
@@ -71,7 +78,17 @@ export async function GET(request: NextRequest) {
         corsOrigin: process.env.CORS_ORIGIN || 'not configured',
         rateLimit: !!process.env.RATE_LIMIT_MAX_REQUESTS
       },
-      validation: { success: true, message: 'temporarily disabled for deployment' }
+      validation: (() => {
+        try {
+          return validateEnv();
+        } catch (error) {
+          return {
+            success: false,
+            error: 'Validation check failed',
+            details: error instanceof Error ? error.message : 'Unknown error'
+          };
+        }
+      })()
     };
 
     return NextResponse.json(health);

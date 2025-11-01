@@ -35,21 +35,31 @@ export async function GET(request: NextRequest) {
 
     // Try to import Prisma
     try {
-      const { prisma } = await import('@/lib/prisma');
-      debug.prisma = { status: 'imported' };
+      const { prisma, isPrismaAvailable } = await import('@/lib/prisma');
       
-      // Try connection
-      try {
-        await Promise.race([
-          prisma.$queryRaw`SELECT 1`,
-          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
-        ]);
-        debug.prisma = { status: 'connected' };
-      } catch (connError) {
+      if (!isPrismaAvailable()) {
         debug.prisma = { 
-          status: 'connection_failed',
-          error: connError instanceof Error ? connError.message : 'Unknown error'
+          status: 'not_initialized',
+          error: process.env.DEMO_MODE === 'true' 
+            ? 'Prisma not initialized in demo mode without DATABASE_URL'
+            : 'Prisma client not initialized'
         };
+      } else {
+        debug.prisma = { status: 'imported' };
+        
+        // Try connection
+        try {
+          await Promise.race([
+            prisma.$queryRaw`SELECT 1`,
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+          ]);
+          debug.prisma = { status: 'connected' };
+        } catch (connError) {
+          debug.prisma = { 
+            status: 'connection_failed',
+            error: connError instanceof Error ? connError.message : 'Unknown error'
+          };
+        }
       }
     } catch (importError) {
       debug.prisma = { 

@@ -210,3 +210,10 @@ Tüm kontroller başarılıysa:
 
 **Şimdi Health Check sonucunu paylaş!** 🚀
 
+
+
+
+
+
+
+
